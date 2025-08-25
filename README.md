@@ -16,4 +16,4 @@ Brew is a project focused on leveraging AI agents to build software products bas
 
 ## License
 
-[License information will be added here]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
