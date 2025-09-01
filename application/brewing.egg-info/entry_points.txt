@@ -1,0 +1,2 @@
+[console_scripts]
+brewing = brewing.cli:cli

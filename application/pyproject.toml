@@ -1,0 +1,76 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "brewing"
+version = "0.1.0"
+description = "Brew - AI-powered software development CLI tool"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Brew Team", email = "team@brew.dev"}
+]
+keywords = ["ai", "development", "cli", "code-generation"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "click>=8.0.0",
+    "fastapi>=0.116.1",
+    "requests>=2.32.4",
+    "uvicorn>=0.33.0",
+    "pytest>=6.0",
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.13.0",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "black",
+    "flake8",
+]
+
+[project.scripts]
+brewing = "brewing.cli:cli"
+
+[project.urls]
+Homepage = "https://github.com/brew/brewing"
+Repository = "https://github.com/brew/brewing"
+Issues = "https://github.com/brew/brewing/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["brewing*"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+    "--disable-warnings"
+]
+markers = [
+    "slow: marks tests as slow",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests"
+]
+
