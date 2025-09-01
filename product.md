@@ -140,3 +140,20 @@ This story enables a user to click on a feature in the sidebar and be navigated 
 The `FeaturePage` shows the TipTap editor where the user can type and modify the feature draft content.
 
 6. As a developer, I want the sidebar to show the features from the API, so that I can can on one.
+
+The sidebar displays the features, without pagination. A "New feature" button is the first clickable item in the "FEATURES"
+section. Sidebar items should not be full width but instead hug their contents. When the URL matches the sidebar item, the
+sidebar item should have the class "bg-active".
+
+7. As a developer, I want to double click the feature name on the feature page, so that I can modify the name.
+
+This story enables the developer to double click on the feature name at the top of the feature page to make it editble.
+This allows the user to then type a new name. When the input focus blurs, the `Feature.name` shall be persisted using the API.
+
+Styling:
+
+- Hovering over the feature name applies the `bg-active` background color.
+- The text should have `rounding-xl`
+- The text width should hug the content.
+- The input should have the same font size as the text, make this explicit.
+- The input should have the `bg-active` background color and no border.

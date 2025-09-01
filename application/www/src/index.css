@@ -4,8 +4,15 @@
 @import "./styles/_keyframe-animations.scss";
 
 @theme {
-  --color-light: hsla(0, 0%, 100%, 0.1);
-  --color-active: hsla(0, 0%, 100%, 0.15);
+  --color-light: rgba(0, 0, 0, 0.06);
+  --color-active: rgba(0, 0, 0, 0.08);
+}
+
+@layer theme {
+  .dark {
+    --color-light: hsla(0, 0%, 100%, 0.1);
+    --color-active: hsla(0, 0%, 100%, 0.15);
+  }
 }
 
 :root {
