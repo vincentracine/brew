@@ -39,7 +39,7 @@ function FeaturePage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen bg-white">
+      <div className="flex bg-white">
         <div className="sticky left-0 top-0 h-full z-10">
           <Navbar />
         </div>
@@ -54,7 +54,7 @@ function FeaturePage() {
 
   if (error || !feature) {
     return (
-      <div className="flex h-screen bg-white">
+      <div className="flex bg-white">
         <div className="sticky left-0 top-0 h-full z-10">
           <Navbar />
         </div>
@@ -68,7 +68,7 @@ function FeaturePage() {
   }
 
   return (
-    <div className="flex h-screen bg-white">
+    <div className="flex bg-white">
       <div className="sticky left-0 top-0 h-full z-10">
         <Navbar />
       </div>

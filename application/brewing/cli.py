@@ -1,14 +1,10 @@
 """Main CLI interface for the brewing tool"""
 
 import click
-import os
-import subprocess
 from pathlib import Path
 import json
 import signal
 import sys
-import threading
-import time
 import webbrowser
 import uuid
 
@@ -69,9 +65,9 @@ def create_project(project_name: str, project_dir: Path = None) -> dict:
 def create(project_name):
     """Create a new Brew project in the specified directory"""
     try:
-        project_config = create_project(project_name)
+        create_project(project_name)
 
-        click.echo(f"✅ Cool! Your project was created.")
+        click.echo("✅ Cool! Your project was created.")
         click.echo("")
         click.echo("Start developing using:")
         click.echo(f"cd {project_name}")
@@ -97,7 +93,7 @@ def start():
         return
 
     click.echo("🚀 Starting Brew development environment...")
-    click.echo("✅ REST API server started on http://localhost:9608")
+    click.echo("✅ REST API server started on http://localhost:9680")
     click.echo("Press Cmd+C to stop the project")
     click.echo("")
     click.echo("🌐 Launching Brew user interface: http://localhost:5173. One moment...")
@@ -143,12 +139,12 @@ def start_api_environment():
 
             # Create uvicorn server config
             config = uvicorn.Config(
-                app=app, host="0.0.0.0", port=9608, log_level="info", access_log=True
+                app=app, host="0.0.0.0", port=9680, log_level="info", access_log=True
             )
 
             # Create and start server
             server = uvicorn.Server(config)
-            click.echo("✅ REST API server started on http://localhost:9608")
+            click.echo("✅ REST API server started on http://localhost:9680")
 
             # Start the server (this will run until interrupted)
             server.run()

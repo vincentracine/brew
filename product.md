@@ -8,9 +8,10 @@ Note: Brew has no association with `brew` the package manager for MacOS.
 
 ## Global constraints
 
-| Key | Value      | Description                             |
-| --- | ---------- | --------------------------------------- |
-| ORM | sqlalchemy | The framework to use for Python SQL ORM |
+| Key | Value        | Description                             |
+| --- | ------------ | --------------------------------------- |
+| ORM | sqlalchemy   | The framework to use for Python SQL ORM |
+| LLM | gpt-4.1-mini | The default LLM model to use            |
 
 ## Features
 
@@ -18,7 +19,7 @@ Note: Brew has no association with `brew` the package manager for MacOS.
 
 The Brew CLI tool `brewing` enables developers to create and manage their brew projects.
 Typically developer tool UIs are installed as applications e.g. VSCode or Docker, except I want the Brew installation to be a CLI tool like `npm`. The CLI tool serves the Brew
-user experience as a web application hosted on the local port 9608. The web application has access to the project directory and the files contained within it. The web application is used to
+user experience as a web application hosted on the local port 9680. The web application has access to the project directory and the files contained within it. The web application is used to
 converse with Brew to generate a product specification and then have Brew generate working code that can be deployed to production based on the product specification.
 
 #### User stories
@@ -58,7 +59,7 @@ brewing start
 
 Start the project user interface by opening the browser to the URL http://localhost:5173.
 
-The start command launches the brewing REST API on port 9608, see Brew CLI REST API section. The REST API allows the Brew UI to interact with the CLI.
+The start command launches the brewing REST API on port 9680, see Brew CLI REST API section. The REST API allows the Brew UI to interact with the CLI.
 When the user interrupts the command, using cmd+c on MacOS or ctrl+c otherwise, the API is shutdown.
 
 Example:
@@ -66,7 +67,7 @@ Example:
 ```bash
 brewing start
 🚀 Starting Brew development environment...
-✅ REST API server started on http://localhost:9608
+✅ REST API server started on http://localhost:9680
 Press Cmd+C to stop the project
 
 🌐 Launching Brew user interface: http://localhost:5173. One moment...
@@ -74,7 +75,7 @@ Press Cmd+C to stop the project
 
 ### Brew CLI REST API
 
-The Brew CLI REST API runs on http://localhost:9608.
+The Brew CLI REST API runs on http://localhost:9680.
 
 | Method | Endpoint         | Purpose                                                    | Response              |
 | ------ | ---------------- | ---------------------------------------------------------- | --------------------- |
@@ -157,3 +158,20 @@ Styling:
 - The text width should hug the content.
 - The input should have the same font size as the text, make this explicit.
 - The input should have the `bg-active` background color and no border.
+
+8. As a developer, I want publish my changes by clicking "Apply changes" on the feature page, so that my application code is modified.
+
+Pressing "Apply changes" will change the value of `Feature.content` to `Feature.draft_content`. It then updates the feature using the API. In the API, when the request body `Feature.content` is different from the value stored in the database, this triggers an LLM to create a summary of the feature specification changes. That summary is used to generate an instruction prompt to modify the codebase using the `cursor-agent` CLI tool in the project directory.
+
+Whenever the `Feature.content` changes, it should be written to a `product.md` file in the project directory root (the folder containing the `.brewing` folder).
+
+Example:
+
+```bash
+cursor-agent -p "
+Modify the codebase to reflect the product specification in `product.md`. Identify the differences between the product specification and the existing code before making changes.
+
+Changes:
+<insert_changes_summary_here>
+"
+```

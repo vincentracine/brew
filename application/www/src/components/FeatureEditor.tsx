@@ -139,6 +139,13 @@ const FeatureEditor = ({ feature, onUpdate }: FeatureEditorProps) => {
     }
   };
 
+  const publishFeature = async () => {
+    await api.updateFeature(feature.id, {
+      ...feature,
+      content: feature.draft_content,
+    });
+  };
+
   if (!tiptapEditor) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -149,30 +156,41 @@ const FeatureEditor = ({ feature, onUpdate }: FeatureEditorProps) => {
 
   return (
     <div className="relative w-full mx-auto max-w-6xl px-12">
-      <div className="mb-8 w-fit -mx-2">
-        {isEditingName ? (
-          <input
-            type="text"
-            value={featureName}
-            onChange={(e) => setFeatureName(e.target.value)}
-            onBlur={handleNameBlur}
-            onKeyDown={handleNameKeyDown}
-            className="text-2xl font-bold text-gray-900 bg-active w-auto p-2 rounded-xl focus:outline-none"
-            autoFocus
-          />
-        ) : (
-          <h1
-            className="text-2xl font-bold text-gray-900 hover:bg-active w-auto p-2 rounded-xl cursor-pointer transition-colors"
-            onDoubleClick={handleNameDoubleClick}
-            title="Double-click to edit"
+      <div className="flex flex-row justify-between items-center mb-8">
+        <div className="w-fit -mx-2">
+          {isEditingName ? (
+            <input
+              type="text"
+              value={featureName}
+              onChange={(e) => setFeatureName(e.target.value)}
+              onBlur={handleNameBlur}
+              onKeyDown={handleNameKeyDown}
+              className="text-2xl font-bold text-gray-900 bg-active w-auto p-2 rounded-xl focus:outline-none"
+              autoFocus
+            />
+          ) : (
+            <h1
+              className="text-2xl font-bold text-gray-900 hover:bg-active w-auto p-2 rounded-xl cursor-pointer transition-colors"
+              onDoubleClick={handleNameDoubleClick}
+              title="Double-click to edit"
+            >
+              {feature.name}
+            </h1>
+          )}
+          {feature.summary && (
+            <p className="text-gray-600 mt-2">{feature.summary}</p>
+          )}
+          {isSaving && <p className="text-sm text-blue-600 mt-2">Saving...</p>}
+        </div>
+        <div>
+          <button
+            onClick={publishFeature}
+            className="bg-light hover:bg-active text-gray-900 px-4 py-2 rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={feature.draft_content === feature.content}
           >
-            {feature.name}
-          </h1>
-        )}
-        {feature.summary && (
-          <p className="text-gray-600 mt-2">{feature.summary}</p>
-        )}
-        {isSaving && <p className="text-sm text-blue-600 mt-2">Saving...</p>}
+            Apply changes
+          </button>
+        </div>
       </div>
 
       <EditorContext.Provider value={{ editor: tiptapEditor }}>

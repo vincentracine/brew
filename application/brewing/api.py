@@ -5,9 +5,12 @@ from typing import List, Optional
 from datetime import datetime
 import uuid
 import json
+import subprocess
+import os
 from pathlib import Path
 from sqlalchemy.orm import Session
 from brewing.models import Feature as FeatureModel, create_database_engine
+import openai
 
 
 # Data Models
@@ -93,6 +96,95 @@ app.add_middleware(
 def generate_uuid() -> str:
     """Generate a new UUID string"""
     return str(uuid.uuid4())
+
+
+def get_project_root() -> Path:
+    """Get the project root directory (contains .brewing folder)"""
+    return Path.cwd()
+
+
+def write_product_md(content: str) -> None:
+    """Write feature content to product.md in project root"""
+    project_root = get_project_root()
+    product_md_path = project_root / "product.md"
+
+    with open(product_md_path, "w", encoding="utf-8") as f:
+        f.write(content)
+
+
+def generate_llm_summary(old_content: str, new_content: str) -> str:
+    """Generate a summary of feature changes using LLM"""
+    try:
+        # Initialize OpenAI client
+        client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        print("Generating a summary of feature changes using LLM")
+
+        prompt = f"""
+        Analyze the changes between these two feature specifications and create a concise summary of what was modified.
+        
+        OLD CONTENT:
+        {old_content}
+        
+        NEW CONTENT:
+        {new_content}
+        
+        Provide a brief summary of the key changes made to the feature specification.
+        Focus on what functionality was added, removed, or modified.
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an AI assistant that analyzes software product specification changes and creates concise summaries.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=5000,
+            temperature=0.3,
+        )
+        summary = response.choices[0].message.content.strip()
+        print(f"LLM summary: {summary}")
+        return summary
+
+    except Exception as e:
+        print(f"Error generating LLM summary: {e}")
+        return "Feature specification was updated"
+
+
+def run_cursor_agent(changes_summary: str) -> None:
+    """Run cursor-agent CLI tool to modify codebase"""
+    try:
+        project_root = get_project_root()
+
+        prompt = f"""
+        Modify the codebase to reflect the product specification in `product.md`. Identify the differences between the product specification and the existing code before making changes.
+
+        Changes:
+        {changes_summary}
+        """
+
+        # Run cursor-agent command
+        result = subprocess.run(
+            ["cursor-agent", "-p", prompt],
+            cwd=project_root,
+            capture_output=True,
+            text=True,
+            timeout=300,  # 5 minute timeout
+        )
+
+        if result.returncode != 0:
+            print(f"cursor-agent error: {result.stderr}")
+        else:
+            print(f"cursor-agent output: {result.stdout}")
+
+    except subprocess.TimeoutExpired:
+        print("cursor-agent command timed out")
+    except FileNotFoundError:
+        print("cursor-agent command not found. Please install cursor-agent CLI tool.")
+    except Exception as e:
+        print(f"Error running cursor-agent: {e}")
 
 
 def get_project_config_path() -> Path:
@@ -230,6 +322,9 @@ async def update_feature(
     if not feature:
         raise HTTPException(status_code=404, detail="Feature not found")
 
+    # Store old content for comparison
+    old_content = feature.content
+
     # Update fields if provided
     if feature_update.name is not None:
         feature.name = feature_update.name
@@ -242,6 +337,27 @@ async def update_feature(
 
     # Update the timestamp
     feature.date_updated = datetime.utcnow()
+
+    # Check if content changed and trigger LLM integration
+    if feature_update.content is not None and feature_update.content != old_content:
+        try:
+            # Write content to product.md
+            write_product_md(feature_update.content)
+
+            # Generate LLM summary of changes
+            changes_summary = generate_llm_summary(
+                old_content or "", feature_update.content
+            )
+
+            # Run cursor-agent to modify codebase
+            print(
+                f"Running cursor-agent to modify codebase with changes summary: {changes_summary}"
+            )
+            run_cursor_agent(changes_summary)
+
+        except Exception as e:
+            print(f"Error in LLM integration: {e}")
+            # Continue with the update even if LLM integration fails
 
     db.commit()
     db.refresh(feature)
@@ -271,4 +387,4 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=9608)
+    uvicorn.run(app, host="0.0.0.0", port=9680)

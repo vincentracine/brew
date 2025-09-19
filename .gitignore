@@ -50,3 +50,6 @@ coverage.xml
 !LICENSE
 
 mock/
+__pycache__
+*.egg-info
+.DS_Store

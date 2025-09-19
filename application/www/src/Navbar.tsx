@@ -103,7 +103,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className="dark w-64 h-full bg-zinc-950 text-white flex flex-col">
+    <div className="dark w-64 h-screen bg-zinc-950 text-white flex flex-col">
       {/* Fixed Header */}
       <div className="flex justify-center items-center py-4">
         <img src="/images/logo.png" alt="Brewing Logo" className="w-28" />
@@ -123,9 +123,7 @@ const Navbar = () => {
               onClick={handleCreateFeature}
             />
             {loading ? (
-              <div className="px-3 py-2 text-zinc-400 text-sm">
-                Loading features...
-              </div>
+              <div className="px-3 py-2 text-zinc-400">Loading features...</div>
             ) : features.length > 0 ? (
               features.map((feature) => {
                 const isActive =
@@ -139,9 +137,7 @@ const Navbar = () => {
                 );
               })
             ) : (
-              <div className="px-3 py-2 text-zinc-400 text-sm">
-                No features yet
-              </div>
+              <div className="px-3 py-2 text-zinc-400">No features yet</div>
             )}
           </div>
         </div>
@@ -151,8 +147,8 @@ const Navbar = () => {
             <NavbarItem
               icon={Cog6ToothIcon}
               label="Settings"
-              href="/editor"
-              isActive={location.pathname === "/editor"}
+              href="/settings"
+              isActive={location.pathname === "/settings"}
             />
           </div>
         </div>
