@@ -2,8 +2,7 @@
 
 Stop vibe-coding. Start shipping.
 
-**Brew** is an open-source platform that flips AI development on its head:  
-you don’t prompt an LLM to spit out random code — you **write product specs**, and Brew turns them into designs, tasks, and working software.
+**Brew** is an open-source platform that flips AI development on its head: you don’t prompt an LLM to spit out random code — you **write product specs**, and Brew turns them into designs, tasks, and working software.
 
 ## Why Brew?
 
@@ -26,7 +25,7 @@ Brew solves this by putting the **spec first**. Your requirements become the sin
 
 ## 🚀 Getting Started
 
-Coming soon — we’re brewing up the first developer preview. Stay tuned! 🍻
+Coming soon — we’re brewing up the first developer preview. Stay tuned! 👋
 
 ## 💌 Get Involved
 
