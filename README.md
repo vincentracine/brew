@@ -1,4 +1,4 @@
-# 🍺 Brew — Spec-Driven AI Development
+# ☕️ Brew — Spec-Driven AI Development
 
 Stop vibe-coding. Start shipping.
 
