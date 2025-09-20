@@ -1,9 +1,0 @@
----
-description: Use task unit-tests from Taskfile.yml to run unit tests.
-globs:
-alwaysApply: true
----
-
-# Taskfile
-
-Use task unit-tests exclusively for running python unit tests.

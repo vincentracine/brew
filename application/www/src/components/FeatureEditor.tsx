@@ -180,7 +180,6 @@ const FeatureEditor = ({ feature, onUpdate }: FeatureEditorProps) => {
           {feature.summary && (
             <p className="text-gray-600 mt-2">{feature.summary}</p>
           )}
-          {isSaving && <p className="text-sm text-blue-600 mt-2">Saving...</p>}
         </div>
         <div>
           <button
