@@ -7,13 +7,12 @@ import { FloatingElement } from "./floating-element";
 import { Toolbar } from "./tiptap-ui-primitive/toolbar";
 import { ButtonGroup } from "./tiptap-ui-primitive/button-group";
 import { MarkButton } from "./tiptap-ui/mark-button";
-import { useEffect, useState, useCallback } from "react";
-import { api } from "@/lib/api";
-import type { Feature } from "@/lib/api";
+import { useEffect, useState } from "react";
+import type { Specification } from "@/features/specifications/dtos";
+import { useUpdateSpecification } from "@/features/specifications/queries";
 
 interface FeatureEditorProps {
-  feature: Feature;
-  onUpdate: (feature: Feature) => void;
+  specification: Specification;
 }
 
 // Debounce hook
@@ -33,12 +32,14 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-const FeatureEditor = ({ feature, onUpdate }: FeatureEditorProps) => {
-  const [content, setContent] = useState(feature.draft_content || "");
-  const [isSaving, setIsSaving] = useState(false);
+const FeatureEditor = ({ specification }: FeatureEditorProps) => {
+  const { mutate: updateSpecification, isPending: isUpdating } =
+    useUpdateSpecification();
+  const currentDraftContent = specification.draft_content || "";
+  const [content, setContent] = useState<string>(currentDraftContent);
   const debouncedContent = useDebounce(content, 1000);
   const [isEditingName, setIsEditingName] = useState(false);
-  const [featureName, setFeatureName] = useState(feature.name);
+  const [featureName, setFeatureName] = useState(specification.name);
 
   const tiptapEditor = useEditor({
     immediatelyRender: false,
@@ -50,7 +51,7 @@ const FeatureEditor = ({ feature, onUpdate }: FeatureEditorProps) => {
         placeholder: "Start writing your feature specification here...",
       }),
     ],
-    content: feature.draft_content,
+    content: specification.draft_content,
     editorProps: {
       attributes: {
         class: "prose max-w-none focus:outline-none",
@@ -62,47 +63,29 @@ const FeatureEditor = ({ feature, onUpdate }: FeatureEditorProps) => {
     },
   });
 
-  // Auto-save effect with debounce
-  const saveContent = useCallback(
-    async (contentToSave: string) => {
-      if (contentToSave === feature.draft_content) return; // No change, don't save
-
-      setIsSaving(true);
-      try {
-        const updatedFeature = await api.updateFeature(feature.id, {
-          draft_content: contentToSave,
-        });
-        onUpdate(updatedFeature);
-      } catch (error) {
-        console.error("Error saving feature content:", error);
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [feature.id, feature.draft_content, onUpdate]
-  );
-
   useEffect(() => {
-    if (debouncedContent !== feature.draft_content) {
-      saveContent(debouncedContent);
-    }
-  }, [debouncedContent, saveContent, feature.draft_content]);
+    if (debouncedContent === currentDraftContent) return; // No change, don't save
+    updateSpecification({
+      ...specification,
+      draft_content: debouncedContent,
+    });
+  }, [specification, debouncedContent, updateSpecification]);
 
   // Update editor content when feature changes
   useEffect(() => {
-    if (tiptapEditor && feature.draft_content !== undefined) {
+    if (tiptapEditor && currentDraftContent !== undefined) {
       const currentContent = tiptapEditor.getHTML();
-      if (currentContent !== feature.draft_content) {
-        tiptapEditor.commands.setContent(feature.draft_content || "");
-        setContent(feature.draft_content || "");
+      if (currentContent !== currentDraftContent) {
+        tiptapEditor.commands.setContent(currentDraftContent);
+        setContent(currentDraftContent);
       }
     }
-  }, [feature.draft_content, tiptapEditor]);
+  }, [currentDraftContent, tiptapEditor]);
 
   // Update local feature name when feature changes
   useEffect(() => {
-    setFeatureName(feature.name);
-  }, [feature.name]);
+    setFeatureName(specification.name);
+  }, [specification.name]);
 
   const handleNameDoubleClick = () => {
     setIsEditingName(true);
@@ -110,20 +93,19 @@ const FeatureEditor = ({ feature, onUpdate }: FeatureEditorProps) => {
 
   const handleNameBlur = async () => {
     if (featureName.trim() === "") {
-      setFeatureName(feature.name); // Reset to original if empty
+      setFeatureName(specification.name); // Reset to original if empty
       setIsEditingName(false);
       return;
     }
 
-    if (featureName.trim() !== feature.name) {
+    if (featureName.trim() !== specification.name) {
       try {
-        const updatedFeature = await api.updateFeature(feature.id, {
+        updateSpecification({
+          ...specification,
           name: featureName.trim(),
         });
-        onUpdate(updatedFeature);
-      } catch (error) {
-        console.error("Error updating feature name:", error);
-        setFeatureName(feature.name); // Reset on error
+      } catch {
+        setFeatureName(specification.name);
       }
     }
     setIsEditingName(false);
@@ -134,15 +116,15 @@ const FeatureEditor = ({ feature, onUpdate }: FeatureEditorProps) => {
       e.preventDefault();
       e.currentTarget.blur();
     } else if (e.key === "Escape") {
-      setFeatureName(feature.name);
+      setFeatureName(specification.name);
       setIsEditingName(false);
     }
   };
 
   const publishFeature = async () => {
-    await api.updateFeature(feature.id, {
-      ...feature,
-      content: feature.draft_content,
+    updateSpecification({
+      ...specification,
+      content: specification.draft_content || "",
     });
   };
 
@@ -174,20 +156,23 @@ const FeatureEditor = ({ feature, onUpdate }: FeatureEditorProps) => {
               onDoubleClick={handleNameDoubleClick}
               title="Double-click to edit"
             >
-              {feature.name}
+              {specification.name}
             </h1>
           )}
-          {feature.summary && (
-            <p className="text-gray-600 mt-2">{feature.summary}</p>
+          {specification.summary && (
+            <p className="text-gray-600 mt-2">{specification.summary}</p>
           )}
         </div>
         <div>
           <button
             onClick={publishFeature}
             className="bg-light hover:bg-active text-gray-900 px-4 py-2 rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={feature.draft_content === feature.content}
+            disabled={
+              isUpdating ||
+              specification.draft_content === specification.content
+            }
           >
-            Apply changes
+            {isUpdating ? "Applying changes..." : "Apply changes"}
           </button>
         </div>
       </div>

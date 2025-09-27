@@ -1,62 +1,39 @@
 import { useState, useEffect } from "react";
-import { api } from "@/lib/api";
-import type { ProjectConfig } from "@/lib/api";
+import {
+  useGetProjectConfig,
+  useUpdateProjectConfig,
+} from "@/features/projects/queries";
+import { Navigate } from "react-router-dom";
 
 function SetupPage() {
   const [showForm, setShowForm] = useState(false);
-  const [projectName, setProjectName] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: projectConfig, isLoading } = useGetProjectConfig();
+  const [projectName, setProjectName] = useState<string>("");
+  const { mutate: updateProjectConfig, isPending: isSubmitting } =
+    useUpdateProjectConfig();
 
   useEffect(() => {
-    const checkProject = async () => {
-      try {
-        const projectConfig: ProjectConfig = await api.getProject();
+    if (!projectConfig?.data) return;
+    setProjectName(projectConfig.data.name);
+  }, [projectConfig]);
 
-        // Check if project is already onboarded
-        if (projectConfig.onboarded) {
-          // Project is onboarded, redirect to editor
-          window.location.href = "/editor";
-        } else {
-          // Project exists but not onboarded, show onboarding form
-          setProjectName(projectConfig.name || "");
-          setShowForm(true);
-          setIsLoading(false);
-        }
-      } catch (error) {
-        if (error instanceof Error && error.message.includes("404")) {
-          // No project exists, show setup page
-          setIsLoading(false);
-        } else {
-          console.error("Error checking project:", error);
-          // On error, show setup page as fallback
-          setIsLoading(false);
-        }
-      }
-    };
-
-    checkProject();
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!projectName.trim()) return;
-
-    setIsSubmitting(true);
-    try {
-      await api.updateProject({
-        onboarded: true,
-        name: projectName.trim(),
-      });
-
-      // Redirect to editor page on success
-      window.location.href = "/editor";
-    } catch (error) {
-      console.error("Error updating project:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
+    if (!projectConfig?.data) return;
+    if (!projectName) return;
+    updateProjectConfig({
+      ...projectConfig.data,
+      name: projectName,
+    });
   };
+
+  if (isLoading) {
+    return null;
+  }
+
+  if (projectConfig?.data.onboarded) {
+    return <Navigate to="/features" />;
+  }
 
   return (
     <div className="dark relative bg-black flex min-h-screen">
@@ -107,7 +84,7 @@ function SetupPage() {
                   htmlFor="projectName"
                   className="block text-white text-sm font-medium mb-2"
                 >
-                  Project Name
+                  Project name
                 </label>
                 <input
                   type="text"

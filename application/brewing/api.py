@@ -20,6 +20,10 @@ class ProjectConfig(BaseModel):
     name: str = Field(..., description="Project name")
 
 
+class ProjectConfigResponse(BaseModel):
+    data: ProjectConfig
+
+
 class FeatureBase(BaseModel):
     name: str = Field(..., description="The name of the feature")
     summary: Optional[str] = Field(None, description="Short description of the feature")
@@ -58,6 +62,22 @@ class Feature(FeatureBase):
 class ProjectUpdate(BaseModel):
     onboarded: bool = Field(..., description="Whether the project has been onboarded")
     name: Optional[str] = Field(None, description="Project name")
+
+
+class ListFeaturesResponse(BaseModel):
+    data: List[Feature]
+
+
+class GetFeatureResponse(BaseModel):
+    data: Feature
+
+
+class CreateFeatureResponse(BaseModel):
+    data: Feature
+
+
+class UpdateFeatureResponse(BaseModel):
+    data: Feature
 
 
 # Database session dependency
@@ -243,12 +263,12 @@ def save_project_config(config: dict) -> dict:
 # API Endpoints
 @app.get(
     "/project",
-    response_model=ProjectConfig,
+    response_model=ProjectConfigResponse,
     summary="Get project configuration from `project.json`",
 )
 async def get_project():
     """Get the current project configuration from .brewing/project.json"""
-    return get_project_config()
+    return ProjectConfigResponse(data=get_project_config())
 
 
 @app.put(
@@ -272,15 +292,20 @@ async def update_project(project_update: ProjectUpdate):
     return save_project_config(updated_config)
 
 
-@app.get("/features", response_model=List[Feature], summary="List all features")
+@app.get("/features", response_model=ListFeaturesResponse, summary="List all features")
 async def list_features(db: Session = Depends(get_db)):
     """Get all features without pagination"""
     features = db.query(FeatureModel).all()
-    return [Feature(**feature.to_dict()) for feature in features]
+    return ListFeaturesResponse(
+        data=[Feature(**feature.to_dict()) for feature in features]
+    )
 
 
 @app.post(
-    "/features", response_model=Feature, status_code=201, summary="Create a feature"
+    "/features",
+    response_model=CreateFeatureResponse,
+    status_code=201,
+    summary="Create a feature",
 )
 async def create_feature(feature: FeatureCreate, db: Session = Depends(get_db)):
     """Create a new feature with only a name"""
@@ -301,19 +326,25 @@ async def create_feature(feature: FeatureCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_feature)
 
-    return Feature(**db_feature.to_dict())
+    return CreateFeatureResponse(data=Feature(**db_feature.to_dict()))
 
 
-@app.get("/features/{feature_id}", response_model=Feature, summary="Get a feature")
+@app.get(
+    "/features/{feature_id}", response_model=GetFeatureResponse, summary="Get a feature"
+)
 async def get_feature(feature_id: str, db: Session = Depends(get_db)):
     """Get a single feature by ID"""
     feature = db.query(FeatureModel).filter(FeatureModel.id == feature_id).first()
     if not feature:
         raise HTTPException(status_code=404, detail="Feature not found")
-    return Feature(**feature.to_dict())
+    return GetFeatureResponse(data=Feature(**feature.to_dict()))
 
 
-@app.put("/features/{feature_id}", response_model=Feature, summary="Update a feature")
+@app.put(
+    "/features/{feature_id}",
+    response_model=UpdateFeatureResponse,
+    summary="Update a feature",
+)
 async def update_feature(
     feature_id: str, feature_update: FeatureUpdate, db: Session = Depends(get_db)
 ):
@@ -362,7 +393,7 @@ async def update_feature(
     db.commit()
     db.refresh(feature)
 
-    return Feature(**feature.to_dict())
+    return UpdateFeatureResponse(data=Feature(**feature.to_dict()))
 
 
 @app.delete("/features/{feature_id}", status_code=204, summary="Delete a feature")

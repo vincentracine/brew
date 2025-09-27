@@ -4,10 +4,12 @@ import {
   LightBulbIcon,
 } from "@heroicons/react/24/outline";
 import type { ComponentType, SVGProps } from "react";
-import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
-import type { Feature } from "@/lib/api";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  useListSpecifications,
+  useCreateSpecification,
+} from "@/features/specifications/queries";
+import type { Specification } from "./features/specifications/dtos";
 
 interface NavbarItemProps {
   icon: ComponentType<SVGProps<SVGSVGElement>>;
@@ -47,58 +49,40 @@ const NavbarItem = ({
 };
 
 interface FeatureItemProps {
-  feature: Feature;
+  specification: Specification;
   isActive: boolean;
 }
 
-const FeatureItem = ({ feature, isActive }: FeatureItemProps) => {
+const FeatureItem = ({ specification, isActive }: FeatureItemProps) => {
   const baseClasses =
     "flex flex-row gap-2 items-center px-3 py-2 pr-4 text-white hover:bg-zinc-800 rounded-full transition-colors";
   const activeClasses = isActive ? "bg-active" : "";
   const classes = `${baseClasses} ${activeClasses}`.trim();
 
   return (
-    <a href={`/features/${feature.id}`} className={classes}>
+    <Link to={`/features/${specification.id}`} className={classes}>
       <LightBulbIcon className="h-5 w-5" />
-      <span className="font-medium truncate">{feature.name}</span>
-    </a>
+      <span className="font-medium truncate">{specification.name}</span>
+    </Link>
   );
 };
 
 const Navbar = () => {
-  const [features, setFeatures] = useState<Feature[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
+  const navigate = useNavigate();
   const location = useLocation();
-
-  useEffect(() => {
-    const loadFeatures = async () => {
-      try {
-        const featuresData = await api.getFeatures();
-        setFeatures(featuresData);
-      } catch (error) {
-        console.error("Error loading features:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadFeatures();
-  }, []);
+  const { data: specifications } = useListSpecifications();
+  const { mutateAsync: createSpecification, isPending: isCreating } =
+    useCreateSpecification();
 
   const handleCreateFeature = async () => {
-    if (creating) return;
-
-    setCreating(true);
+    if (isCreating) return;
     try {
-      const newFeature = await api.createFeature({ name: "Untitled feature" });
-      setFeatures((prev) => [...prev, newFeature]);
-      // Navigate to the new feature
-      window.location.href = `/features/${newFeature.id}`;
+      const { data: newSpecification } = await createSpecification({
+        name: "Untitled feature",
+      });
+      navigate(`/features/${newSpecification.id}`);
     } catch (error) {
       console.error("Error creating feature:", error);
-    } finally {
-      setCreating(false);
     }
   };
 
@@ -119,26 +103,20 @@ const Navbar = () => {
           <div className="flex flex-col gap-2 items-start">
             <NavbarItem
               icon={PlusIcon}
-              label={creating ? "Creating..." : "New feature"}
+              label={isCreating ? "Creating..." : "New feature"}
               onClick={handleCreateFeature}
             />
-            {loading ? (
-              <div className="px-3 py-2 text-zinc-400">Loading features...</div>
-            ) : features.length > 0 ? (
-              features.map((feature) => {
-                const isActive =
-                  location.pathname === `/features/${feature.id}`;
-                return (
-                  <FeatureItem
-                    key={feature.id}
-                    feature={feature}
-                    isActive={isActive}
-                  />
-                );
-              })
-            ) : (
-              <div className="px-3 py-2 text-zinc-400">No features yet</div>
-            )}
+            {specifications?.data?.map((specification) => {
+              const isActive =
+                location.pathname === `/features/${specification.id}`;
+              return (
+                <FeatureItem
+                  key={specification.id}
+                  specification={specification}
+                  isActive={isActive}
+                />
+              );
+            })}
           </div>
         </div>
 

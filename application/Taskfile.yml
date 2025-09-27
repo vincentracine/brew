@@ -1,0 +1,14 @@
+version: '3'
+
+tasks:
+  install:
+    sources:
+      - pyproject.toml
+      - uv.lock
+    cmds:
+      - uv sync
+  
+  dev:
+    deps: [install]
+    cmds:
+      - uv run run_api.py

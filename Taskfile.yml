@@ -1,12 +1,9 @@
 version: '3'
 
-tasks:
-  install-cli:
+includes:
+  backend:
+    taskfile: ./application/Taskfile.yml
     dir: ./application
-    cmds:
-      - uv pip install -e .
-  
-  unit-tests:
-    dir: ./application
-    cmds:
-      - uv run pytest
+  frontend: 
+    taskfile: ./application/www/Taskfile.yml
+    dir: ./application/www

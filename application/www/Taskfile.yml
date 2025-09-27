@@ -1,0 +1,11 @@
+version: '3'
+
+tasks:
+  install:
+    cmds:
+      - npm install
+  
+  dev:
+    deps: [install]
+    cmds:
+      - npm run dev
