@@ -1,37 +1,34 @@
-import {
-  PlusIcon,
-  Cog6ToothIcon,
-  LightBulbIcon,
-} from "@heroicons/react/24/outline";
-import type { ComponentType, SVGProps } from "react";
+import { PlusIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
+import { type ComponentType, type SVGProps } from "react";
+import { IconTrash } from "@tabler/icons-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   useListSpecifications,
   useCreateSpecification,
+  useDeleteSpecification,
 } from "@/features/specifications/queries";
 import type { Specification } from "./features/specifications/dtos";
+import { IconPicker } from "./features/specifications/components/IconPicker";
 
-interface NavbarItemProps {
+type NavbarItemProps = {
   icon: ComponentType<SVGProps<SVGSVGElement>>;
   label: string;
-  href?: string;
-  onClick?: () => void;
   isActive?: boolean;
-}
+} & ({ onClick: () => void } | { href: string });
 
 const NavbarItem = ({
   icon: Icon,
   label,
-  href,
-  onClick,
   isActive = false,
+  ...props
 }: NavbarItemProps) => {
   const baseClasses =
     "flex flex-row gap-2 items-center px-3 py-2 pr-4 text-white hover:bg-zinc-800 rounded-full transition-colors cursor-pointer";
   const activeClasses = isActive ? "bg-active" : "";
   const classes = `${baseClasses} ${activeClasses}`.trim();
 
-  if (onClick) {
+  if ("onClick" in props) {
+    const { onClick } = props;
     return (
       <button onClick={onClick} className={classes}>
         <Icon className="h-5 w-5" />
@@ -41,10 +38,10 @@ const NavbarItem = ({
   }
 
   return (
-    <a href={href} className={classes}>
+    <Link to={props.href} className={classes}>
       <Icon className="h-5 w-5" />
       <span className="font-medium">{label}</span>
-    </a>
+    </Link>
   );
 };
 
@@ -55,14 +52,30 @@ interface FeatureItemProps {
 
 const FeatureItem = ({ specification, isActive }: FeatureItemProps) => {
   const baseClasses =
-    "flex flex-row gap-2 items-center px-3 py-2 pr-4 text-white hover:bg-zinc-800 rounded-full transition-colors";
+    "flex flex-row w-full gap-2 items-center px-2 py-2 pr-2 text-white hover:bg-zinc-800 rounded-full transition-colors hover:[&_.trash-icon]:block";
   const activeClasses = isActive ? "bg-active" : "";
   const classes = `${baseClasses} ${activeClasses}`.trim();
+  const navigate = useNavigate();
+  const { mutateAsync: deleteSpecification } = useDeleteSpecification();
 
+  const handleDeleteFeature = async () => {
+    await deleteSpecification(specification.id);
+    navigate("/features");
+  };
   return (
     <Link to={`/features/${specification.id}`} className={classes}>
-      <LightBulbIcon className="h-5 w-5" />
-      <span className="font-medium truncate">{specification.name}</span>
+      <div className="h-8 w-8 text-base rounded-full hover:bg-active flex items-center justify-center">
+        <IconPicker specificationId={specification.id} />
+      </div>
+      <span className="font-medium truncate flex-grow-1">
+        {specification.name}
+      </span>
+      <div className="h-8 w-8 text-base rounded-full hover:bg-active flex items-center justify-center">
+        <IconTrash
+          className="trash-icon h-5 w-5 hidden flex-shrink-0"
+          onClick={handleDeleteFeature}
+        />
+      </div>
     </Link>
   );
 };
@@ -79,6 +92,7 @@ const Navbar = () => {
     try {
       const { data: newSpecification } = await createSpecification({
         name: "Untitled feature",
+        emoji: "💡",
       });
       navigate(`/features/${newSpecification.id}`);
     } catch (error) {

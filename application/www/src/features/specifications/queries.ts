@@ -73,3 +73,22 @@ export const useUpdateSpecification = () => {
     },
   });
 };
+
+export const useDeleteSpecification = () => {
+  return useMutation({
+    mutationFn: async (uuid: string) => {
+      return fetchClient.delete<void>(`/features/${uuid}`);
+    },
+    onSuccess: (_, uuid: string) => {
+      queryClient.removeQueries({ queryKey: ["specifications", uuid] });
+      queryClient.setQueryData(
+        ["specifications"],
+        (previous: ListSpecificationsResponse): ListSpecificationsResponse => {
+          return {
+            data: previous.data.filter((entry) => entry.id !== uuid),
+          };
+        }
+      );
+    },
+  });
+};

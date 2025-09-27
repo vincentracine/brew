@@ -10,6 +10,7 @@ export interface GetProjectConfigResponse {
 
 export interface UpdateProjectConfigRequest {
   name: string;
+  onboarded: boolean;
 }
 
 export interface UpdateProjectConfigResponse {

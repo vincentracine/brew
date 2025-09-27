@@ -26,6 +26,7 @@ class ProjectConfigResponse(BaseModel):
 
 class FeatureBase(BaseModel):
     name: str = Field(..., description="The name of the feature")
+    emoji: Optional[str] = Field(None, description="The emoji of the feature")
     summary: Optional[str] = Field(None, description="Short description of the feature")
     content: Optional[str] = Field(
         None, description="The published specification content"
@@ -37,10 +38,12 @@ class FeatureBase(BaseModel):
 
 class FeatureCreate(BaseModel):
     name: str = Field(..., description="The name of the feature")
+    emoji: Optional[str] = Field(None, description="The emoji of the feature")
 
 
 class FeatureUpdate(BaseModel):
     name: Optional[str] = Field(None, description="The name of the feature")
+    emoji: Optional[str] = Field(None, description="The emoji of the feature")
     summary: Optional[str] = Field(None, description="Short description of the feature")
     content: Optional[str] = Field(
         None, description="The published specification content"
@@ -314,9 +317,10 @@ async def create_feature(feature: FeatureCreate, db: Session = Depends(get_db)):
     db_feature = FeatureModel(
         id=generate_uuid(),
         name=feature.name,
+        emoji=feature.emoji,
         summary=None,
-        content=None,
-        draft_content=None,
+        content="",
+        draft_content="",
         date_published=None,
         date_created=now,
         date_updated=now,
@@ -359,6 +363,8 @@ async def update_feature(
     # Update fields if provided
     if feature_update.name is not None:
         feature.name = feature_update.name
+    if feature_update.emoji is not None:
+        feature.emoji = feature_update.emoji
     if feature_update.summary is not None:
         feature.summary = feature_update.summary
     if feature_update.content is not None:

@@ -15,6 +15,7 @@ class Feature(Base):
     __tablename__ = "features"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    emoji = Column(String, nullable=True)
     name = Column(Text, nullable=False)
     summary = Column(Text, nullable=True)
     content = Column(Text, nullable=True)
@@ -27,6 +28,7 @@ class Feature(Base):
         """Convert model to dictionary"""
         return {
             "id": self.id,
+            "emoji": self.emoji,
             "name": self.name,
             "summary": self.summary,
             "content": self.content,

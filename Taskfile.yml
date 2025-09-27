@@ -3,7 +3,7 @@ version: '3'
 includes:
   backend:
     taskfile: ./application/Taskfile.yml
-    dir: ./application
+    #dir: ./application
   frontend: 
     taskfile: ./application/www/Taskfile.yml
     dir: ./application/www

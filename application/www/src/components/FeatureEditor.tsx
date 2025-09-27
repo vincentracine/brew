@@ -10,6 +10,7 @@ import { MarkButton } from "./tiptap-ui/mark-button";
 import { useEffect, useState } from "react";
 import type { Specification } from "@/features/specifications/dtos";
 import { useUpdateSpecification } from "@/features/specifications/queries";
+import { IconPicker } from "@/features/specifications/components/IconPicker";
 
 interface FeatureEditorProps {
   specification: Specification;
@@ -152,11 +153,13 @@ const FeatureEditor = ({ specification }: FeatureEditorProps) => {
             />
           ) : (
             <h1
-              className="text-2xl font-bold text-gray-900 hover:bg-active w-auto p-2 rounded-xl cursor-pointer transition-colors"
+              className="flex flex-row gap-2 items-center text-2xl font-bold text-gray-900 hover:bg-active w-auto p-2 rounded-xl cursor-pointer transition-colors"
               onDoubleClick={handleNameDoubleClick}
-              title="Double-click to edit"
             >
-              {specification.name}
+              <div className="p-1 px-2 rounded-lg hover:bg-active">
+                <IconPicker specificationId={specification.id} />
+              </div>
+              <span>{specification.name}</span>
             </h1>
           )}
           {specification.summary && (

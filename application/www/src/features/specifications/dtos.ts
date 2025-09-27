@@ -1,5 +1,6 @@
 export interface Specification {
   id: string;
+  emoji?: string;
   name: string;
   summary?: string;
   content?: string;
@@ -19,6 +20,7 @@ export interface GetSpecificationResponse {
 
 export interface CreateSpecificationRequest {
   name: string;
+  emoji?: string;
 }
 
 export interface CreateSpecificationResponse {

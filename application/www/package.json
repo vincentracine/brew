@@ -10,9 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emoji-mart/data": "^1.2.1",
+    "@emoji-mart/react": "^1.1.1",
     "@floating-ui/dom": "^1.7.4",
     "@floating-ui/react": "^0.27.16",
     "@heroicons/react": "^2.2.0",
+    "@tabler/icons-react": "^3.35.0",
     "@tailwindcss/vite": "^4.1.12",
     "@tanstack/query-db-collection": "^0.2.22",
     "@tanstack/react-db": "^0.1.23",
@@ -27,10 +30,13 @@
     "@tiptap/pm": "^3.3.0",
     "@tiptap/react": "^3.3.0",
     "@tiptap/starter-kit": "^3.3.0",
+    "clsx": "^2.1.1",
+    "emoji-mart": "^5.6.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-hotkeys-hook": "^5.1.0",
     "react-router-dom": "^7.8.2",
+    "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.12"
   },
   "devDependencies": {
@@ -48,5 +54,11 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.1",
     "vite": "^7.1.2"
+  },
+  "overrides": {
+    "@emoji-mart/react": {
+      "react": "^19.0.0",
+      "react-dom": "^19.0.0"
+    }
   }
 }

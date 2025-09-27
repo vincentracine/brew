@@ -21,9 +21,11 @@ function SetupPage() {
     e.preventDefault();
     if (!projectConfig?.data) return;
     if (!projectName) return;
+
     updateProjectConfig({
       ...projectConfig.data,
       name: projectName,
+      onboarded: true,
     });
   };
 

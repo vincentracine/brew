@@ -7,8 +7,15 @@ tasks:
       - uv.lock
     cmds:
       - uv sync
+    dir: ./application
   
   dev:
     deps: [install]
     cmds:
-      - uv run run_api.py
+      - cd {{.USER_WORKING_DIR}} && uv run {{.TASKFILE_DIR}}/run_api.py
+  
+  install-cli:
+    deps: [install]
+    cmds:
+      - uv pip install -e .
+  
