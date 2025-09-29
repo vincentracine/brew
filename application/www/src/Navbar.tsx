@@ -3,12 +3,13 @@ import { type ComponentType, type SVGProps } from "react";
 import { IconTrash } from "@tabler/icons-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  useListSpecifications,
   useCreateSpecification,
   useDeleteSpecification,
 } from "@/features/specifications/queries";
 import type { Specification } from "./features/specifications/dtos";
 import { IconPicker } from "./features/specifications/components/IconPicker";
+import { useLiveQuery } from "@tanstack/react-db";
+import { specificationCollection } from "./features/specifications/collection";
 
 type NavbarItemProps = {
   icon: ComponentType<SVGProps<SVGSVGElement>>;
@@ -64,15 +65,15 @@ const FeatureItem = ({ specification, isActive }: FeatureItemProps) => {
   };
   return (
     <Link to={`/features/${specification.id}`} className={classes}>
-      <div className="h-8 w-8 text-base rounded-full hover:bg-active flex items-center justify-center">
+      <div className="h-8 w-8 text-base rounded-full hover:bg-active flex items-center justify-center flex-shrink-0">
         <IconPicker specificationId={specification.id} />
       </div>
       <span className="font-medium truncate flex-grow-1">
         {specification.name}
       </span>
-      <div className="h-8 w-8 text-base rounded-full hover:bg-active flex items-center justify-center">
+      <div className="h-8 w-8 text-base rounded-full hover:bg-active flex items-center justify-center flex-shrink-0">
         <IconTrash
-          className="trash-icon h-5 w-5 hidden flex-shrink-0"
+          className="trash-icon h-5 w-5 hidden"
           onClick={handleDeleteFeature}
         />
       </div>
@@ -83,7 +84,14 @@ const FeatureItem = ({ specification, isActive }: FeatureItemProps) => {
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: specifications } = useListSpecifications();
+  const { data: specifications } = useLiveQuery(
+    (q) =>
+      q
+        .from({ specifications: specificationCollection })
+        .orderBy(({ specifications }) => specifications.date_created, "asc"),
+    []
+  );
+
   const { mutateAsync: createSpecification, isPending: isCreating } =
     useCreateSpecification();
 
@@ -101,7 +109,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className="dark w-64 h-screen bg-zinc-950 text-white flex flex-col">
+    <div className="dark w-72 h-screen bg-zinc-950 text-white flex flex-col">
       {/* Fixed Header */}
       <div className="flex justify-center items-center py-4">
         <img src="/images/logo.png" alt="Brewing Logo" className="w-28" />
@@ -120,7 +128,7 @@ const Navbar = () => {
               label={isCreating ? "Creating..." : "New feature"}
               onClick={handleCreateFeature}
             />
-            {specifications?.data?.map((specification) => {
+            {specifications.map((specification) => {
               const isActive =
                 location.pathname === `/features/${specification.id}`;
               return (

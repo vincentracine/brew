@@ -1,14 +1,14 @@
 import { useParams } from "react-router-dom";
 import FeatureEditor from "../components/FeatureEditor";
-import { useGetSpecification } from "@/features/specifications/queries";
+import { useLiveGetSpecification } from "@/features/specifications/hooks/useLiveGetSpecification";
 
 export const FeaturePage = () => {
   const { featureId } = useParams<{ featureId: string }>();
   const {
     data: specification,
     isLoading,
-    error,
-  } = useGetSpecification(featureId!);
+    isError,
+  } = useLiveGetSpecification(featureId!);
 
   if (isLoading) {
     return (
@@ -18,13 +18,15 @@ export const FeaturePage = () => {
     );
   }
 
-  if (error || !specification?.data) {
+  if (isError || !specification) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-red-600">{error?.message || "Feature not found"}</p>
+        <p className="text-red-600">
+          {isError ? "Something went wrong" : "Feature not found"}
+        </p>
       </div>
     );
   }
 
-  return <FeatureEditor specification={specification.data} />;
+  return <FeatureEditor specificationId={specification.id} />;
 };

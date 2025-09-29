@@ -8,12 +8,12 @@ import { Toolbar } from "./tiptap-ui-primitive/toolbar";
 import { ButtonGroup } from "./tiptap-ui-primitive/button-group";
 import { MarkButton } from "./tiptap-ui/mark-button";
 import { useEffect, useState } from "react";
-import type { Specification } from "@/features/specifications/dtos";
-import { useUpdateSpecification } from "@/features/specifications/queries";
 import { IconPicker } from "@/features/specifications/components/IconPicker";
+import { useLiveGetSpecification } from "@/features/specifications/hooks/useLiveGetSpecification";
+import { specificationCollection } from "@/features/specifications/collection";
 
 interface FeatureEditorProps {
-  specification: Specification;
+  specificationId: string;
 }
 
 // Debounce hook
@@ -33,9 +33,9 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-const FeatureEditor = ({ specification }: FeatureEditorProps) => {
-  const { mutate: updateSpecification, isPending: isUpdating } =
-    useUpdateSpecification();
+const FeatureEditor = ({ specificationId }: FeatureEditorProps) => {
+  const { data: specification } = useLiveGetSpecification(specificationId);
+
   const currentDraftContent = specification.draft_content || "";
   const [content, setContent] = useState<string>(currentDraftContent);
   const debouncedContent = useDebounce(content, 1000);
@@ -65,12 +65,11 @@ const FeatureEditor = ({ specification }: FeatureEditorProps) => {
   });
 
   useEffect(() => {
-    if (debouncedContent === currentDraftContent) return; // No change, don't save
-    updateSpecification({
-      ...specification,
-      draft_content: debouncedContent,
+    if (debouncedContent === currentDraftContent) return;
+    specificationCollection.update(specificationId, (draft) => {
+      draft.draft_content = debouncedContent;
     });
-  }, [specification, debouncedContent, updateSpecification]);
+  }, [debouncedContent]);
 
   // Update editor content when feature changes
   useEffect(() => {
@@ -101,9 +100,8 @@ const FeatureEditor = ({ specification }: FeatureEditorProps) => {
 
     if (featureName.trim() !== specification.name) {
       try {
-        updateSpecification({
-          ...specification,
-          name: featureName.trim(),
+        specificationCollection.update(specificationId, (draft) => {
+          draft.name = featureName.trim();
         });
       } catch {
         setFeatureName(specification.name);
@@ -123,9 +121,8 @@ const FeatureEditor = ({ specification }: FeatureEditorProps) => {
   };
 
   const publishFeature = async () => {
-    updateSpecification({
-      ...specification,
-      content: specification.draft_content || "",
+    specificationCollection.update(specificationId, (draft) => {
+      draft.content = specification.draft_content || "";
     });
   };
 
@@ -170,12 +167,9 @@ const FeatureEditor = ({ specification }: FeatureEditorProps) => {
           <button
             onClick={publishFeature}
             className="bg-light hover:bg-active text-gray-900 px-4 py-2 rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={
-              isUpdating ||
-              specification.draft_content === specification.content
-            }
+            disabled={specification.draft_content === specification.content}
           >
-            {isUpdating ? "Applying changes..." : "Apply changes"}
+            Apply changes
           </button>
         </div>
       </div>

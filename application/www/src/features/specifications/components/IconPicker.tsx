@@ -3,8 +3,9 @@ import { useState } from "react";
 import { offset, flip, shift } from "@floating-ui/react";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
-import { useGetSpecification, useUpdateSpecification } from "../queries";
 import { cn } from "@/utils/cn";
+import { specificationCollection } from "../collection";
+import { useLiveGetSpecification } from "../hooks/useLiveGetSpecification";
 
 export const IconPicker = ({
   specificationId,
@@ -15,8 +16,7 @@ export const IconPicker = ({
   defaultIcon?: string;
   className?: string;
 }) => {
-  const { data: specification } = useGetSpecification(specificationId);
-  const { mutateAsync: updateSpecification } = useUpdateSpecification();
+  const { data: specification } = useLiveGetSpecification(specificationId);
   const [isOpen, setIsOpen] = useState(false);
   const { refs, floatingStyles } = useFloating({
     placement: "bottom-start",
@@ -26,9 +26,8 @@ export const IconPicker = ({
   const handleEmojiSelect = (emoji: { native: string }) => {
     if (!specification) return;
     setIsOpen(false);
-    updateSpecification({
-      ...specification.data,
-      emoji: emoji.native,
+    specificationCollection.update(specificationId, (draft) => {
+      draft.emoji = emoji.native;
     });
   };
 
@@ -43,7 +42,7 @@ export const IconPicker = ({
         ref={refs.setReference}
         onClick={() => setIsOpen(!isOpen)}
       >
-        {specification.data.emoji || defaultIcon}
+        {specification.emoji || defaultIcon}
       </span>
       {isOpen && (
         <div ref={refs.setFloating} style={floatingStyles} className="z-50">
